@@ -339,9 +339,12 @@ export default async function DashboardPage() {
                     {event.event_type === "push" && event.payload?.commits && (
                       <div className="mt-1.5 space-y-1">
                         {event.payload.commits.slice(0, 3).map((commit) => (
-                          <p
+                          <a
                             key={commit.id}
-                            className="text-xs text-zinc-500 dark:text-zinc-400"
+                            href={`https://github.com/${event.repository}/commit/${commit.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded px-1 -mx-1 text-xs text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
                           >
                             <span className="font-mono text-zinc-400 dark:text-zinc-500">
                               {commit.id.slice(0, 7)}
@@ -351,7 +354,7 @@ export default async function DashboardPage() {
                             <span className="text-zinc-400 dark:text-zinc-500">
                               {commit.author}
                             </span>
-                          </p>
+                          </a>
                         ))}
                         {event.payload.commits.length > 3 && (
                           <p className="text-xs text-zinc-400 dark:text-zinc-500">
