@@ -31,9 +31,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect unauthenticated users away from protected routes
+  // Allow API webhook routes through without authentication
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/auth") &&
+    !request.nextUrl.pathname.startsWith("/api/github/webhook") &&
     request.nextUrl.pathname !== "/"
   ) {
     const url = request.nextUrl.clone();
