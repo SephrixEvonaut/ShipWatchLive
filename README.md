@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShipWatch Live
+
+A full-stack GitHub monitoring and AI code review platform. Connect your GitHub account via a GitHub App installation, receive real-time webhook events from selected repositories, and run AI-powered commit analysis with one-click auto-fix.
+
+## What It Does
+
+- Receives GitHub push events via webhooks with HMAC-SHA256 signature verification
+- Displays a real-time activity feed of commits across all monitored repositories
+- Flags suspicious commits (bug fixes, hotfixes, crashes) and large pushes (10+ commits)
+- Detects repository inactivity (no pushes in 7 days)
+- On-demand AI commit review: fetches full diffs and file contents, sends them through an n8n workflow connected to Claude, returns structured analysis with per-file fix suggestions
+- One-click auto-fix: AI generates corrected code and commits it directly to the repository via the GitHub Contents API
+
+## Tech Stack
+
+- **Frontend:** Next.js (App Router), React Server Components, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes, Supabase (Auth, PostgreSQL, Storage, Row Level Security)
+- **AI Pipeline:** n8n workflow automation, Claude API
+- **GitHub Integration:** GitHub App (JWT auth, installation tokens, webhook events, Contents API)
+
+## Architecture
+
+**Auth:** Supabase Auth with email/password and Google OAuth. Middleware refreshes sessions on every request and protects dashboard routes while allowing webhook endpoints through unauthenticated.
+
+**Webhook Pipeline:** GitHub sends push, installation, and installation_repositories events to `/api/github/webhook`. The route verifies the signature, parses the event, and writes to a `webhook_events` table. Installation lifecycle events trigger cleanup of the `github_installations` table.
+
+**AI Review Pipeline:** `/api/review-commit` authenticates the user, fetches an installation access token, pulls the commit diff and full file contents (up to 15 files, sorted by change volume), and forwards everything to an n8n webhook. The response is normalized across multiple envelope shapes to extract the structured analysis.
+
+**Auto-Fix Pipeline:** `/api/apply-fix` fetches the target file and its SHA, sends it through a second n8n workflow for AI correction, parses the corrected content, and commits it back to the repository with proper SHA tracking to prevent conflicts.
+
+## Environment Variables
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SITE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+GITHUB_APP_ID=
+GITHUB_APP_PRIVATE_KEY=
+GITHUB_APP_SLUG=
+GITHUB_WEBHOOK_SECRET=
+N8N_WEBHOOK_URL=
+N8N_FIX_WEBHOOK_URL=
+```
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Requires a configured GitHub App, Supabase project, and n8n instance with review and fix workflows.
