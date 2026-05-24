@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-const COMMITS = [
+const COMMITS: { hash: string; msg: string; author: string; severity: "critical" | "warning" | "ok"; time: string; detail: string }[] = [
   {
     hash: "a3f91c2",
     msg: "feat: add OAuth2 refresh token rotation",
@@ -146,7 +146,7 @@ const FEATURES = [
   },
 ];
 
-function SeverityBadge({ severity }) {
+function SeverityBadge({ severity }: { severity: "critical" | "warning" | "ok" }) {
   const styles = {
     critical: "bg-red-500/15 text-red-400 border-red-500/30",
     warning: "bg-amber-500/15 text-amber-400 border-amber-500/30",
@@ -162,7 +162,7 @@ function SeverityBadge({ severity }) {
   );
 }
 
-function AnimatedCounter({ value, duration = 2000 }) {
+function AnimatedCounter({ value, duration = 2000 }: { value: string; duration?: number }) {
   const [display, setDisplay] = useState("0");
   const ref = useRef(null);
   const [started, setStarted] = useState(false);
@@ -203,7 +203,7 @@ function AnimatedCounter({ value, duration = 2000 }) {
   return <span ref={ref}>{display}</span>;
 }
 
-function TerminalLine({ text, delay }) {
+function TerminalLine({ text, delay }: { text: string; delay: number }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), delay);
@@ -219,10 +219,11 @@ function TerminalLine({ text, delay }) {
   );
 }
 
-function GlowOrb({ className }) {
+function GlowOrb({ className, style }: { className: string; style?: React.CSSProperties }) {
   return (
     <div
       className={`absolute rounded-full blur-[120px] pointer-events-none ${className}`}
+      style={style}
     />
   );
 }
