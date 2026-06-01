@@ -1,0 +1,23 @@
+{
+  "id": "error-handling-001",
+  "category": "error-handling",
+  "language": "typescript",
+  "diff": "--- a/src/lib/api.ts\n+++ b/src/lib/api.ts\n@@ -0,0 +1,16 @@\n+export async function fetchUser(id: string) {\n+  const res = await fetch(`/api/users/${id}`);\n+  const data = await res.json();\n+  return data;\n+}\n+\n+export async function updateProfile(\n+  id: string,\n+  payload: Record<string, unknown>\n+): Promise<void> {\n+  await fetch(`/api/users/${id}`, {\n+    method: \"PUT\",\n+    headers: { \"Content-Type\": \"application/json\" },\n+    body: JSON.stringify(payload),\n+  });\n+}",
+  "fileContents": "{\"src/lib/api.ts\":\"export async function fetchUser(id: string) {\\n  const res = await fetch(`/api/users/${id}`);\\n  const data = await res.json();\\n  return data;\\n}\\n\\nexport async function updateProfile(\\n  id: string,\\n  payload: Record<string, unknown>\\n): Promise<void> {\\n  await fetch(`/api/users/${id}`, {\\n    method: \\\"PUT\\\",\\n    headers: { \\\"Content-Type\\\": \\\"application/json\\\" },\\n    body: JSON.stringify(payload),\\n  });\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "eh001-f1",
+      "category": "error-handling",
+      "summary": "fetchUser has no try/catch and no res.ok check — a network failure or non-JSON response throws an uncaught exception",
+      "lineHint": 2,
+      "severity": "high"
+    },
+    {
+      "id": "eh001-f2",
+      "category": "error-handling",
+      "summary": "updateProfile returns void so the caller cannot distinguish success from failure — violates caller-facing error contract",
+      "lineHint": 10,
+      "severity": "medium"
+    }
+  ]
+}

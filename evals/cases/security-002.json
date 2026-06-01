@@ -1,0 +1,16 @@
+{
+  "id": "security-002",
+  "category": "security",
+  "language": "typescript",
+  "diff": "--- a/src/lib/billing.ts\n+++ b/src/lib/billing.ts\n@@ -0,0 +1,16 @@\n+const PAYMENT_API_KEY = \"live_key_4xQr9mBzKpN2vLtYwHjUcDsAeF8gRoI3\";\n+\n+export async function createCharge(\n+  customerId: string,\n+  amountCents: number\n+): Promise<string> {\n+  const res = await fetch(\"https://api.payments.example.com/v1/charges\", {\n+    method: \"POST\",\n+    headers: {\n+      Authorization: `Bearer ${PAYMENT_API_KEY}`,\n+      \"Content-Type\": \"application/x-www-form-urlencoded\",\n+    },\n+    body: `customer=${customerId}&amount=${amountCents}&currency=usd`,\n+  });\n+  const data = await res.json();\n+  return data.id;\n+}",
+  "fileContents": "{\"src/lib/billing.ts\":\"const PAYMENT_API_KEY = \\\"live_key_4xQr9mBzKpN2vLtYwHjUcDsAeF8gRoI3\\\";\\n\\nexport async function createCharge(\\n  customerId: string,\\n  amountCents: number\\n): Promise<string> {\\n  const res = await fetch(\\\"https://api.payments.example.com/v1/charges\\\", {\\n    method: \\\"POST\\\",\\n    headers: {\\n      Authorization: `Bearer ${PAYMENT_API_KEY}`,\\n      \\\"Content-Type\\\": \\\"application/x-www-form-urlencoded\\\",\\n    },\\n    body: `customer=${customerId}&amount=${amountCents}&currency=usd`,\\n  });\\n  const data = await res.json();\\n  return data.id;\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "sec002-f1",
+      "category": "security",
+      "summary": "Hardcoded live payment API key (32+ character alphanumeric pattern at module scope) — permanently in git history; any module that imports this file can read the key; no try/catch so payment failures are unhandled",
+      "lineHint": 1,
+      "severity": "high"
+    }
+  ]
+}

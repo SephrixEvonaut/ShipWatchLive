@@ -1,0 +1,16 @@
+{
+  "id": "code-quality-001",
+  "category": "code-quality",
+  "language": "typescript",
+  "diff": "--- a/src/lib/sessions.ts\n+++ b/src/lib/sessions.ts\n@@ -0,0 +1,28 @@\n+import { db } from \"./database\";\n+\n+async function createSession(\n+  userId: string\n+): Promise<{ success: boolean; sessionId?: string; error?: string }> {\n+  try {\n+    const session = await db.insert(\"sessions\", { user_id: userId });\n+    return { success: true, sessionId: session.id };\n+  } catch (e) {\n+    return { success: false, error: e instanceof Error ? e.message : \"Unknown\" };\n+  }\n+}\n+\n+async function revokeSession(\n+  sessionId: string\n+): Promise<{ success: boolean; error?: string }> {\n+  try {\n+    await db.delete(\"sessions\", sessionId);\n+    return { success: true };\n+  } catch (e) {\n+    return { success: false, error: e instanceof Error ? e.message : \"Unknown\" };\n+  }\n+}\n+\n+async function validateSession(sessionId: string): Promise<boolean> {\n+  const session = await db.findOne(\"sessions\", sessionId);\n+  return !!session;\n+}",
+  "fileContents": "{\"src/lib/sessions.ts\":\"import { db } from \\\"./database\\\";\\n\\nasync function createSession(\\n  userId: string\\n): Promise<{ success: boolean; sessionId?: string; error?: string }> {\\n  try {\\n    const session = await db.insert(\\\"sessions\\\", { user_id: userId });\\n    return { success: true, sessionId: session.id };\\n  } catch (e) {\\n    return { success: false, error: e instanceof Error ? e.message : \\\"Unknown\\\" };\\n  }\\n}\\n\\nasync function revokeSession(\\n  sessionId: string\\n): Promise<{ success: boolean; error?: string }> {\\n  try {\\n    await db.delete(\\\"sessions\\\", sessionId);\\n    return { success: true };\\n  } catch (e) {\\n    return { success: false, error: e instanceof Error ? e.message : \\\"Unknown\\\" };\\n  }\\n}\\n\\nasync function validateSession(sessionId: string): Promise<boolean> {\\n  const session = await db.findOne(\\\"sessions\\\", sessionId);\\n  return !!session;\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "cq001-f1",
+      "category": "code-quality",
+      "summary": "validateSession breaks the established { success, error? } pattern used by sibling functions createSession and revokeSession — returns boolean, silently collapsing DB errors into false with no error field and no try/catch",
+      "lineHint": 25,
+      "severity": "medium"
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+// Bump this string whenever the prompt text changes — every eval report records it.
+export const REVIEW_PROMPT_VERSION = "1.0.0";
+
 // Single source of truth for the code review system prompt.
 // This is the exact prompt used in the n8n "Review" Claude node.
 // The dynamic section (repository, diff, file contents) is separated into

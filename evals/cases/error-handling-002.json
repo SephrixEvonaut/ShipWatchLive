@@ -1,0 +1,23 @@
+{
+  "id": "error-handling-002",
+  "category": "error-handling",
+  "language": "typescript",
+  "diff": "--- a/src/lib/records.ts\n+++ b/src/lib/records.ts\n@@ -0,0 +1,22 @@\n+import { db } from \"./database\";\n+\n+async function createRecord(\n+  data: Record<string, unknown>\n+): Promise<{ success: boolean }> {\n+  try {\n+    await db.insert(\"records\", data);\n+    return { success: true };\n+  } catch (e) {\n+    console.error(\"Failed to create record\");\n+    return { success: false };\n+  }\n+}\n+\n+async function deleteRecord(id: string): Promise<{ success: boolean }> {\n+  try {\n+    await db.delete(\"records\", id);\n+    return { success: true };\n+  } catch (e) {\n+    return { success: false };\n+  }\n+}",
+  "fileContents": "{\"src/lib/records.ts\":\"import { db } from \\\"./database\\\";\\n\\nasync function createRecord(\\n  data: Record<string, unknown>\\n): Promise<{ success: boolean }> {\\n  try {\\n    await db.insert(\\\"records\\\", data);\\n    return { success: true };\\n  } catch (e) {\\n    console.error(\\\"Failed to create record\\\");\\n    return { success: false };\\n  }\\n}\\n\\nasync function deleteRecord(id: string): Promise<{ success: boolean }> {\\n  try {\\n    await db.delete(\\\"records\\\", id);\\n    return { success: true };\\n  } catch (e) {\\n    return { success: false };\\n  }\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "eh002-f1",
+      "category": "error-handling",
+      "summary": "createRecord collapses all failure modes (DB connection error, constraint violation, timeout) into { success: false } with no error field — caller cannot distinguish between failure types",
+      "lineHint": 9,
+      "severity": "medium"
+    },
+    {
+      "id": "eh002-f2",
+      "category": "error-handling",
+      "summary": "deleteRecord silently swallows all errors with no logging and no error field — caller receives { success: false } with zero diagnostic information",
+      "lineHint": 19,
+      "severity": "medium"
+    }
+  ]
+}

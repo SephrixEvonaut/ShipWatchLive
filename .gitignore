@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# eval results — keep baseline, ignore run outputs
+evals/results/*.json
+!evals/results/baseline.json

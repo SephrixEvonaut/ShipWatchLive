@@ -1,0 +1,41 @@
+name: Evals
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run eval harness
+        run: npm run eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_MODEL: claude-haiku-4-5
+          EVAL_SUT: direct
+
+      - name: Upload eval report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report-${{ github.sha }}
+          path: evals/results/*.json
+          if-no-files-found: warn
+
+      - name: Regression test
+        run: npx vitest run evals/
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_RECALL_THRESHOLD: "0.7"

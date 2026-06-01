@@ -1,0 +1,23 @@
+{
+  "id": "code-quality-002",
+  "category": "code-quality",
+  "language": "typescript",
+  "diff": "--- a/src/lib/users.ts\n+++ b/src/lib/users.ts\n@@ -0,0 +1,18 @@\n+type User = {\n+  profile?: {\n+    displayName?: string;\n+    avatarUrl?: string;\n+  };\n+};\n+\n+export function formatUserGreeting(user?: User): string {\n+  return `Hello, ${user.profile.displayName.toUpperCase()}!`;\n+}\n+\n+export function getUserInitials(user?: User): string {\n+  const parts = user.profile.displayName.split(\" \");\n+  return parts.map(p => p[0]).join(\"\").toUpperCase();\n+}",
+  "fileContents": "{\"src/lib/users.ts\":\"type User = {\\n  profile?: {\\n    displayName?: string;\\n    avatarUrl?: string;\\n  };\\n};\\n\\nexport function formatUserGreeting(user?: User): string {\\n  return `Hello, ${user.profile.displayName.toUpperCase()}!`;\\n}\\n\\nexport function getUserInitials(user?: User): string {\\n  const parts = user.profile.displayName.split(\\\" \\\");\\n  return parts.map(p => p[0]).join(\\\"\\\").toUpperCase();\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "cq002-f1",
+      "category": "code-quality",
+      "summary": "formatUserGreeting accesses user.profile.displayName without null guards — user, profile, and displayName are all optional and any can be undefined, causing a TypeError at runtime",
+      "lineHint": 9,
+      "severity": "high"
+    },
+    {
+      "id": "cq002-f2",
+      "category": "code-quality",
+      "summary": "getUserInitials has the same missing null guard chain — user.profile.displayName.split will throw if any level is undefined",
+      "lineHint": 13,
+      "severity": "high"
+    }
+  ]
+}

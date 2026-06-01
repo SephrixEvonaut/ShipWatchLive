@@ -1,0 +1,23 @@
+{
+  "id": "security-001",
+  "category": "security",
+  "language": "typescript",
+  "diff": "--- a/src/app/api/debug/route.ts\n+++ b/src/app/api/debug/route.ts\n@@ -0,0 +1,11 @@\n+import { NextResponse } from \"next/server\";\n+\n+export async function GET() {\n+  return NextResponse.json({\n+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,\n+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,\n+    webhookSecret: process.env.GITHUB_WEBHOOK_SECRET,\n+    nodeEnv: process.env.NODE_ENV,\n+  });\n+}",
+  "fileContents": "{\"src/app/api/debug/route.ts\":\"import { NextResponse } from \\\"next/server\\\";\\n\\nexport async function GET() {\\n  return NextResponse.json({\\n    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,\\n    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,\\n    webhookSecret: process.env.GITHUB_WEBHOOK_SECRET,\\n    nodeEnv: process.env.NODE_ENV,\\n  });\\n}\"}",
+  "expectedFindings": [
+    {
+      "id": "sec001-f1",
+      "category": "security",
+      "summary": "SUPABASE_SERVICE_ROLE_KEY is a server-only secret returned in the API response — any browser or unauthenticated caller receives it, bypassing Row Level Security and gaining unrestricted read/write access to every Supabase table",
+      "lineHint": 6,
+      "severity": "high"
+    },
+    {
+      "id": "sec001-f2",
+      "category": "security",
+      "summary": "GITHUB_WEBHOOK_SECRET is returned in the response — any caller can use it to forge valid HMAC-SHA256 webhook signatures, bypassing all webhook authentication",
+      "lineHint": 7,
+      "severity": "high"
+    }
+  ]
+}
