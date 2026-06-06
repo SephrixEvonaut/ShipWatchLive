@@ -75,6 +75,18 @@ export default async function DashboardPage() {
 
   const events = (recentEvents as WebhookEvent[]) ?? [];
 
+  // Collect commit SHAs visible in the feed and check which are already reviewed
+  const feedShas = events.flatMap((e) => e.payload?.commits?.map((c) => c.id) ?? []);
+  let reviewedCommitShas: string[] = [];
+  if (feedShas.length > 0) {
+    const { data: reviews } = await supabase
+      .from("commit_reviews")
+      .select("commit_sha")
+      .eq("user_id", user?.id ?? "")
+      .in("commit_sha", feedShas);
+    reviewedCommitShas = (reviews ?? []).map((r) => r.commit_sha as string);
+  }
+
   // Compute stats
   const totalRepos = repos.length;
   const totalCommitsToday = events.filter((e) => {
@@ -301,7 +313,7 @@ export default async function DashboardPage() {
 
       {/* Recent activity */}
       {hasActivity ? (
-        <ActivityFeed events={events} />
+        <ActivityFeed events={events} reviewedCommitShas={reviewedCommitShas} />
       ) : (
         <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
           <svg

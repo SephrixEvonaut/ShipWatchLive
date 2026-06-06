@@ -25,12 +25,13 @@ type WebhookEvent = {
 
 type ReviewState = {
   loading: boolean;
-  result: null | { analysis: Record<string, unknown> };
+  result: null | { analysis: Record<string, unknown>; cached?: boolean };
   error: string | null;
   commit: { sha: string; message: string; repository: string; branch: string } | null;
 };
 
-export function ActivityFeed({ events }: { events: WebhookEvent[] }) {
+export function ActivityFeed({ events, reviewedCommitShas }: { events: WebhookEvent[]; reviewedCommitShas: string[] }) {
+  const [localReviewed, setLocalReviewed] = useState(() => new Set(reviewedCommitShas));
   const [review, setReview] = useState<ReviewState>({
     loading: false,
     result: null,
@@ -67,6 +68,7 @@ export function ActivityFeed({ events }: { events: WebhookEvent[] }) {
       }
 
       const data = await res.json();
+      setLocalReviewed((prev) => new Set([...prev, commitSha]));
       setReview((prev) => ({ ...prev, loading: false, result: data }));
     } catch (err) {
       setReview((prev) => ({
@@ -172,10 +174,14 @@ export function ActivityFeed({ events }: { events: WebhookEvent[] }) {
                                 event.branch,
                               )
                             }
-                            className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 rounded bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50 transition-all"
-                            title="AI Review this commit"
+                            className={`shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 rounded px-2 py-0.5 text-xs font-medium transition-all ${
+                              localReviewed.has(commit.id)
+                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                                : "bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+                            }`}
+                            title={localReviewed.has(commit.id) ? "View cached AI review" : "AI Review this commit"}
                           >
-                            Review
+                            {localReviewed.has(commit.id) ? "View Review" : "Review"}
                           </button>
                         </div>
                       ))}
@@ -211,9 +217,16 @@ export function ActivityFeed({ events }: { events: WebhookEvent[] }) {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
               <div className="min-w-0 flex-1">
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  AI Commit Review
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                    AI Commit Review
+                  </h3>
+                  {review.result?.cached && (
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      cached
+                    </span>
+                  )}
+                </div>
                 {review.commit && (
                   <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
                     <span className="font-mono">

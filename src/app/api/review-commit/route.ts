@@ -21,6 +21,19 @@ export async function POST(request: Request) {
     );
   }
 
+  // Return cached review if one exists for this user+repo+sha
+  const { data: cached } = await supabase
+    .from("commit_reviews")
+    .select("analysis")
+    .eq("user_id", user.id)
+    .eq("repository", repository)
+    .eq("commit_sha", commitSha)
+    .single();
+
+  if (cached) {
+    return NextResponse.json({ analysis: cached.analysis, cached: true });
+  }
+
   // Get the user's GitHub installation to fetch a token
   const { data: installation } = await supabase
     .from("github_installations")
@@ -211,7 +224,15 @@ export async function POST(request: Request) {
   }
 
 
-  return NextResponse.json({ analysis });
+  // Persist so subsequent requests for this commit are instant
+  await supabase.from("commit_reviews").insert({
+    user_id: user.id,
+    repository,
+    commit_sha: commitSha,
+    analysis,
+  });
+
+  return NextResponse.json({ analysis, cached: false });
 }
 
 // --- GitHub App helpers ---
